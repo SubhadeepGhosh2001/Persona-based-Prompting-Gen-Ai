@@ -2,190 +2,149 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Batman AI Terminal</title>
   <style>
-    /* Universal dark scrollbars */
-    * {
-      scrollbar-width: thin;
-      scrollbar-color: #39ff14 #0a0a0a;
-    }
-
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background-color: #39ff14;
-      border-radius: 10px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background-color: #0a0a0a;
-    }
-
-    /* Dark base */
     body {
+      background-color: #0a0a0a;
+      color: #39ff14;
+      font-family: 'Courier New', Courier, monospace;
       margin: 0;
       padding: 0;
-      background-color: #0a0a0a;
-      color: #00ffcc;
-      font-family: 'Courier New', Courier, monospace;
       height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     #terminal {
-      background: #050505;
-      padding: 30px;
-      margin: 5% auto;
-      max-width: 900px;
+      background-color: #101010;
+      border: 2px solid #39ff14;
+      border-radius: 10px;
       width: 90%;
-      border-radius: 15px;
-      box-shadow: 0 0 20px #00ffcc;
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      font-size: 28px;
-      letter-spacing: 2px;
-      color: #f5f5f5;
-      text-shadow: 0 0 10px #00ffcc;
-    }
-
-    .input-container {
+      max-width: 900px;
+      height: 90vh;
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 20px;
+      flex-direction: column;
+      padding: 20px;
+      box-shadow: 0 0 20px #39ff14;
+      overflow: hidden;
     }
 
-    input[type="text"] {
+    #header {
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #ffdc00;
+      text-shadow: 0 0 8px #ff0000, 0 0 15px #ff0;
+      margin-bottom: 15px;
+    }
+
+    #chatDisplay {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding-right: 10px;
+      margin-bottom: 15px;
+    }
+
+    .message {
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+    }
+
+    .user {
+      color: #00bfff;
+    }
+
+    .bot {
+      color: #39ff14;
+    }
+
+    .timestamp {
+      color: #666;
+      font-size: 0.75em;
+      margin-left: 10px;
+    }
+
+    #inputBox {
+      display: flex;
+    }
+
+    #userInput {
       flex: 1;
-      min-width: 250px;
-      padding: 12px;
       background-color: #1a1a1a;
-      color: #00ffcc;
-      border: 1px solid #00ffcc;
-      border-radius: 8px;
+      color: #39ff14;
+      border: 1px solid #39ff14;
+      padding: 10px;
       font-size: 16px;
-    }
-
-    input[type="text"]::placeholder {
-      color: #888;
+      outline: none;
     }
 
     button {
-      padding: 12px 20px;
-      background-color: #ff073a;
-      color: #fff;
+      background-color: #39ff14;
+      color: #000;
+      font-weight: bold;
       border: none;
-      border-radius: 8px;
-      font-weight: bold;
+      padding: 10px 20px;
       cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    button:hover {
-      background-color: #e6002e;
-    }
-
-    .step {
-      margin-top: 15px;
-      padding: 10px;
-      background: #121212;
-      border-left: 4px solid #00ffcc;
-      border-radius: 6px;
-      animation: fadeIn 0.5s ease-in-out;
-      word-wrap: break-word;
-    }
-
-    .step::before {
-      content: "🦇 ";
-      margin-right: 5px;
-    }
-
-    .output {
-      color: #ff073a;
-      font-weight: bold;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @media (max-width: 600px) {
-      h2 {
-        font-size: 22px;
-      }
-
-      input[type="text"] {
-        font-size: 14px;
-      }
-
-      button {
-        padding: 10px 16px;
-        font-size: 14px;
-      }
+      margin-left: 10px;
     }
   </style>
 </head>
 <body>
   <div id="terminal">
-    <h2>🦇 BATMAN AI TERMINAL</h2>
-    <div class="input-container">
-      <input type="text" id="userInput" placeholder="Speak your pain... Gotham hears.">
-      <button onclick="sendQuery()">Summon</button>
+    <div id="header">🦇 BATMAN AI - Your Dark Knight of Dialogue</div>
+    <div id="chatDisplay"></div>
+    <div id="inputBox">
+      <input type="text" id="userInput" placeholder="Ask me anything—from Java bugs to Joker-level heartbreaks...">
+      <button onclick="sendQuery()">Send</button>
     </div>
-    <div id="responseBox"></div>
   </div>
 
   <script>
+    const chatDisplay = document.getElementById("chatDisplay");
+
+    function addMessage(sender, text) {
+      const msg = document.createElement("div");
+      msg.className = `message ${sender}`;
+      const timestamp = new Date().toLocaleTimeString();
+      msg.innerHTML = `<strong>${sender === 'user' ? '🧑‍💻 You' : '🤖 Batman AI'}:</strong> ${text} <span class="timestamp">${timestamp}</span>`;
+      chatDisplay.appendChild(msg);
+      chatDisplay.scrollTop = chatDisplay.scrollHeight;
+    }
+
     async function sendQuery() {
-      const input = document.getElementById("userInput").value.trim();
-      const box = document.getElementById("responseBox");
-
-      if (!input) {
-        box.innerHTML = "<div class='step'>🧨 Even the Bat needs words. Type something, champ.</div>";
-        return;
-      }
-
-      box.innerHTML = "<div class='step'>🦇 Summoning Batman AI from the Batcave...</div>";
+      const input = document.getElementById("userInput");
+      const query = input.value.trim();
+      if (!query) return;
+      addMessage("user", query);
+      input.value = "";
 
       try {
         const res = await fetch("http://localhost:5000/api/rockstar", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ query: input })
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query })
         });
 
         const data = await res.json();
 
         if (data.step && data.content) {
-          const output = document.createElement("div");
-          output.className = data.step === "output" ? "step output" : "step";
-        //   output.innerText = `${data.step.toUpperCase()}: ${data.content}`;
-          output.innerText = `${data.content}`;
-          box.innerHTML = "";
-          box.appendChild(output);
+        //   addMessage("bot", `${data.step.toUpperCase()}: ${data.content}`);
+          addMessage("bot", `${data.content}`);
         } else {
-          box.innerHTML = "<div class='step'>💥 Gotham's quiet. Try again.</div>";
+          addMessage("bot", "💥 Something went off-script in Gotham. Try again.");
         }
-      } catch (err) {
-        console.error(err);
-        box.innerHTML = "<div class='step'>❌ Lost contact with the Batcave. Is your backend running?</div>";
+
+      } catch (error) {
+        console.error(error);
+        addMessage("bot", "❌ Batserver unreachable. Check your backend.");
       }
     }
+
+    document.getElementById("userInput").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") sendQuery();
+    });
   </script>
 </body>
 </html>
