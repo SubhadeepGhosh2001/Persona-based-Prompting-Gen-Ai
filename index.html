@@ -174,7 +174,8 @@
         if (data.step && data.content) {
           const output = document.createElement("div");
           output.className = data.step === "output" ? "step output" : "step";
-          output.innerText = `${data.step.toUpperCase()}: ${data.content}`;
+        //   output.innerText = `${data.step.toUpperCase()}: ${data.content}`;
+          output.innerText = `${data.content}`;
           box.innerHTML = "";
           box.appendChild(output);
         } else {
